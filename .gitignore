@@ -1,0 +1,6 @@
+test/
+.vscode/
+.clasp.json
+.claspignore
+package.json
+appsscript.json

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <base target="_top">
+    <link href="https://unpkg.com/tabulator-tables@5.2.7/dist/css/tabulator_midnight.min.css" rel="stylesheet">
+
+    <style>
+        .data-table {
+            border: 1px solid #282828;
+            background-color: #111111;
+        }
+
+        .data-table .tabulator-header {
+            background-color: #080808;
+        }
+
+        .data-table .tabulator-row {
+            background-color: #151515;
+        }
+
+        .data-table .tabulator-row.tabulator-row-even {
+            background-color: #202020;
+        }
+
+        .data-table .tabulator-row.tabulator-selectable:hover {
+            background-color: #000;
+        }
+
+        .data-table .tabulator-row .tabulator-cell {
+            border-right-color: #393838;
+        }
+
+        .data-table .tabulator-row .tabulator-cell.tabulator-editing {
+            border: 1px solid #3FB449;
+        }
+
+        .data-table .tabulator-row .tabulator-cell input,
+        .data-table .tabulator-row .tabulator-cell select,
+        .data-table .tabulator-row .tabulator-cell textarea {
+            background-color: #121212;
+            color: #ccc;
+        }
+
+        .data-table .tabulator-footer {
+            background-color: #101010;
+        }
+
+        .data-table .tabulator-footer .tabulator-page,
+        .data-table .tabulator-footer .tabulator-page-size {
+            background: #ebebeb;
+        }
+
+        .search-box-outer, .add-record-box-outer {
+            margin-bottom: 1rem;
+        }
+
+        .search-box-inner, .add-record-box-inner {
+            background-color: #111111;
+            padding: 0.5rem;
+        }
+
+        .search-box-inner input {
+            color: #fff;
+            background-color: #393838;
+            padding: 0.5rem;
+            border: 1px solid #3FB449;
+            border-radius: 0.2rem;
+        }
+
+        .search-box-inner label {
+            color: #fff;
+            margin-right: 0.5rem;
+            padding: 0.5rem;
+        }
+
+        .add-record-box-inner button {
+            color: #fff;
+            background-color: #393838;
+            padding: 0.5rem;
+            border: 1px solid #3FB449;
+            border-radius: 0.2rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="search-box-outer">
+        <div class="search-box-inner">
+            <label>Search:</label><input type="text" id="search" placeholder="type here..">
+        </div>
+    </div>
+
+    <div class="add-record-box-outer">
+        <div class="add-record-box-inner">
+            <button id="add-record">Add Record</button>
+        </div>
+    </div>
+
+    <div id="data-table" class="data-table"></div>
+    <div id="alerts"></div>
+
+    <script type="text/javascript" src="https://unpkg.com/tabulator-tables@5.2.7/dist/js/tabulator.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@2.4.0/build/global/luxon.min.js"></script>
+
+    <script>
+        const elements = {}
+        document.addEventListener("DOMContentLoaded", pageLoad)
+
+        function pageLoad() {
+            elements.alerts = document.getElementById('alerts')
+            elements.search = document.getElementById('search')
+            loadData()
+            elements.addRecordButton = document.getElementById("add-record")
+
+            elements.search.addEventListener("input", searchData)
+            elements.addRecordButton.addEventListener("click", addRecord)
+        }
+
+        function loadData() {
+            google.script.run
+                .withSuccessHandler((jsData) => {
+                    console.log(jsData);
+
+                    elements.table = new Tabulator("#data-table", {
+                        height: 300,
+                        data: jsData,
+                        layout: "fitColumns",
+                        pagination: true,
+                        paginationSize: 5,
+                        columns: [{
+                                title: "Id",
+                                field: "Id"
+                            },
+                            {
+                                title: "Name",
+                                field: "Name",
+                                width: 150,
+                                editor: "input"
+                            },
+                            {
+                                title: "Qty",
+                                field: "Qty",
+                                width: 100,
+                                editor: "input",
+                                hozAlign: "right",
+                                validator: "integer"
+                            },
+                            {
+                                title: "Price",
+                                field: "Price",
+                                width: 100,
+                                editor: "input",
+                                hozAlign: "right",
+                                validator: "regex:^\\d+\\.\\d{2}$",
+                                formatter: "money",
+                                formatterParams: {
+                                    decimal: ".",
+                                    thousand: ",",
+                                    symbol: "$",
+                                    symbolAfter: false,
+                                    precision: 2
+                                }
+                            },
+                            {
+                                title: "Gender",
+                                field: "Gender",
+                                width: 95,
+                                editor: "list",
+                                editorParams: {
+                                    values: ["male", "female"]
+                                }
+                            },
+                            {
+                                title: "State",
+                                field: "State",
+                                width: 100
+                            },
+                            {
+                                title: "Company",
+                                field: "Company"
+                            },
+                            {
+                                title: "Date Of Birth",
+                                field: "Birthday",
+                                sorter: "date",
+                                hozAlign: "center",
+                                sorterParams: {
+                                    format: "M/d/yyyy",
+                                    alignEmptyValues: "bottom",
+                                }
+                            },
+                            {
+                                title: "Task Progress",
+                                field: "Progress",
+                                hozAlign: "left",
+                                formatter: "progress"
+                            },
+                            {
+                                title: "Complete",
+                                field: "Complete",
+                                width: 60,
+                                hozAlign: "center",
+                                formatter: "tickCross",
+                                formatterParams: {
+                                    crossElement: false
+                                },
+                                sorter: "boolean",
+                                editor: true
+                            }
+                        ],
+                    })
+
+                    elements.table.on("cellEdited", function (cell) {
+                        //cell - cell component
+                        console.log('now:' + cell._cell.value);
+                        console.log('changed from: ' + cell._cell.oldValue);
+                        console.log(cell._cell);
+
+                        const id = cell._cell.row.data.Id
+                        const field = cell._cell.column.field
+                        const type = cell._cell.column.definition.formatter
+
+                        const val = type === "tickCross" ? Number(cell._cell.value) : cell._cell.value
+
+                        if (["Gender", "Name", "Complete", "Qty", "Price"].includes(field)) {
+                            elements.alerts.textContent = "Saving Changes.."
+                            google.script.run
+                                .withSuccessHandler(() => {
+                                    elements.alerts.textContent = "Changed Saved!"
+                                    clearAlerts(elements.alerts)
+
+                                })
+                                .withFailureHandler((er) => {
+                                    elements.alerts.textContent = "Error Saving Changes!"
+                                    clearAlerts(elements.alerts)
+
+                                })
+
+                                .editCell({
+                                    id: id,
+                                    val: val,
+                                    field: field
+                                })
+                        }
+
+                    });
+
+
+                })
+                .withFailureHandler((er) => {
+
+                })
+                .getData()
+        }
+
+        function clearAlerts(el) {
+            setTimeout(() => {
+                el.textContent = ""
+            }, 2500)
+        }
+
+        function searchData(e) {
+            elements.table.setFilter("Name", "like", e.target.value)
+        }
+
+        function addRecord() {
+            google.script.run
+                .withSuccessHandler((newId) => {
+                    elements.table.addRow({Id:newId}, true)
+                })
+                .withFailureHandler((er) => {
+                    console.log("Error adding the row")
+                })
+
+                .addRecord({
+
+                })
+        }
+    </script>
+</body>
+
+</html>
