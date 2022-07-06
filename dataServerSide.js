@@ -34,8 +34,8 @@ function editCell(props) {
 
 
 function addRecord() {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const ws = ss.getSheetByName('Customers');
+    const ss = SpreadsheetApp.getActiveSpreadsheet()
+    const ws = ss.getSheetByName('Customers')
 
     const timestamp = new Date().getTime().toString()
     const newId = timestamp.substring(0, 5) + '-' + timestamp.toString()

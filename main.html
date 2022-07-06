@@ -121,7 +121,6 @@
         function loadData() {
             google.script.run
                 .withSuccessHandler((jsData) => {
-                    console.log(jsData);
 
                     elements.table = new Tabulator("#data-table", {
                         height: 300,
@@ -213,10 +212,9 @@
                     })
 
                     elements.table.on("cellEdited", function (cell) {
-                        //cell - cell component
-                        console.log('now:' + cell._cell.value);
-                        console.log('changed from: ' + cell._cell.oldValue);
-                        console.log(cell._cell);
+                        // console.log('now:' + cell._cell.value)
+                        // console.log('changed from: ' + cell._cell.oldValue)
+                        // console.log(cell._cell)
 
                         const id = cell._cell.row.data.Id
                         const field = cell._cell.column.field
@@ -230,12 +228,10 @@
                                 .withSuccessHandler(() => {
                                     elements.alerts.textContent = "Changed Saved!"
                                     clearAlerts(elements.alerts)
-
                                 })
                                 .withFailureHandler((er) => {
                                     elements.alerts.textContent = "Error Saving Changes!"
                                     clearAlerts(elements.alerts)
-
                                 })
 
                                 .editCell({
@@ -244,8 +240,7 @@
                                     field: field
                                 })
                         }
-
-                    });
+                    })
 
 
                 })
@@ -273,10 +268,7 @@
                 .withFailureHandler((er) => {
                     console.log("Error adding the row")
                 })
-
-                .addRecord({
-
-                })
+                .addRecord()
         }
     </script>
 </body>
